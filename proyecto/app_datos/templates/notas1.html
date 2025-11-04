@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+    <h1>3. Promedio Nota 1 de Todos los Ramos</h1>
+    <p>Muestra las notas 1 promedio de cada ramo (TVD, BD, POO, ML, AWS)</p>
+
+    <div style="width: 80;">
+        <canvas id="myChart"></canvas>
+    </div>
+
+    {{ labels|json_script:"chart-labels"  }}
+    {{ data|json_script:"chart-data"  }}
+
+    <script>
+
+        const labels = JSON.parse(document.getElementById('chart-labels').textContent);
+        const data = JSON.parse(document.getElementById('chart-data').textContent);
+
+        const ctx = document.getElementById("myChart");
+
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Promedio Nota 1',
+                    data: data,
+                    backgroundColor: 'rgba(255, 159, 64, 0.6)'
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 7.0
+                    }
+                }
+            }
+        });
+    </script>
+{% endblock %}

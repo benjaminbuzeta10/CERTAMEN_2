@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <h1>4. Promedio Nota 1 (TVD) por Sección</h1>
+  <p>Calcula y visualiza el promedio de nota1 del ramo TVD por sección.</p>
+
+  <div style="width: 80%;">
+    <canvas id="myChart"></canvas>
+  </div>
+
+  {{ labels|json_script:"chart-labels" }}
+  {{ data|json_script:"chart-data" }}
+
+  <script>
+    // Obtenemos los datos
+    const labels = JSON.parse(document.getElementById('chart-labels').textContent);
+    const data = JSON.parse(document.getElementById('chart-data').textContent);
+
+    // Configuramos el gráfico
+    const ctx = document.getElementById('myChart');
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels, // Eje X (A, B, C...)
+        datasets: [{
+          label: 'Promedio Nota 1 (TVD)',
+          data: data,   // Eje Y (6.1, 5.5, ...)
+          backgroundColor: 'rgba(153, 102, 255, 0.6)'
+        }]
+      },
+      options: {
+        scales: {
+          y: { 
+            beginAtZero: true,
+            max: 7.0 // Escala de 1.0 a 7.0
+          } 
+        }
+      }
+    });
+  </script>
+{% endblock %}

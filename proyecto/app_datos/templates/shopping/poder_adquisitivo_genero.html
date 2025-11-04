@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="mb-4">Poder Adquisitivo vs. Género</h1>
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-body">
+                    <canvas id="poderAdquisitivoGenero"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5>Estadísticas Detalladas</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Género</th>
+                                <th>Mínimo</th>
+                                <th>Q1 (25%)</th>
+                                <th>Mediana</th>
+                                <th>Media</th>
+                                <th>Q3 (75%)</th>
+                                <th>Máximo</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for gender, stat in stats.items %}
+                            <tr>
+                                <td><strong>{{ gender }}</strong></td>
+                                <td>${{ stat.min|floatformat:2 }}</td>
+                                <td>${{ stat.q1|floatformat:2 }}</td>
+                                <td>${{ stat.median|floatformat:2 }}</td>
+                                <td>${{ stat.mean|floatformat:2 }}</td>
+                                <td>${{ stat.q3|floatformat:2 }}</td>
+                                <td>${{ stat.max|floatformat:2 }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const ctx = document.getElementById('poderAdquisitivoGenero').getContext('2d');
+
+    const stats = {{ stats|safe }};
+    const genders = Object.keys(stats);
+
+    // Crear datasets para simular boxplot con barras de error
+    const means = genders.map(g => stats[g].mean);
+    const medians = genders.map(g => stats[g].median);
+
+    const chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: genders,
+            datasets: [
+                {
+                    label: 'Media',
+                    data: means,
+                    backgroundColor: 'rgba(255, 182, 193, 0.7)',
+                    borderColor: 'rgba(255, 182, 193, 1)',
+                    borderWidth: 2
+                },
+                {
+                    label: 'Mediana',
+                    data: medians,
+                    backgroundColor: 'rgba(173, 216, 230, 0.7)',
+                    borderColor: 'rgba(173, 216, 230, 1)',
+                    borderWidth: 2
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                },
+                title: {
+                    display: true,
+                    text: 'Distribución del Poder Adquisitivo por Género',
+                    font: {
+                        size: 16
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        afterLabel: function(context) {
+                            const gender = context.label;
+                            const stat = stats[gender];
+                            return [
+                                `Min: $${stat.min.toFixed(2)}`,
+                                `Q1: $${stat.q1.toFixed(2)}`,
+                                `Mediana: $${stat.median.toFixed(2)}`,
+                                `Q3: $${stat.q3.toFixed(2)}`,
+                                `Max: $${stat.max.toFixed(2)}`
+                            ];
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Poder Adquisitivo (USD)'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Género'
+                    }
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

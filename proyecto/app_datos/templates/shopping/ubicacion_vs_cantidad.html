@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="mb-4">Ubicación vs. Cantidad Comprada</h1>
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-body">
+                    <canvas id="ubicacionVsCantidad" style="height: 800px;"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const ctx = document.getElementById('ubicacionVsCantidad').getContext('2d');
+
+    const labels = {{ labels|safe }};
+    const data = {{ data|safe }};
+
+    // Generar colores pastel para cada estado
+    const colors = labels.map((_, index) => {
+        const hue = (index * 137.5) % 360;
+        return `hsla(${hue}, 70%, 80%, 0.7)`;
+    });
+
+    const chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Promedio de Poder Adquisitivo',
+                data: data,
+                backgroundColor: colors,
+                borderColor: 'rgba(0, 0, 0, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                },
+                title: {
+                    display: true,
+                    text: 'Promedio de Compras por Ubicación',
+                    font: {
+                        size: 16
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `${context.dataset.label}: $${context.parsed.x.toFixed(2)}`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Poder Adquisitivo (USD)'
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Ubicación'
+                    }
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

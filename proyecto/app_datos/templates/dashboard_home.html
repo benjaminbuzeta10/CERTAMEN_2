@@ -1,0 +1,100 @@
+{% extends 'base.html' %} {% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="display-4">Dashboard Business Case</h1>
+            <p class="lead text-muted">
+                Selecciona un gráfico para ver el análisis detallado
+            </p>
+        </div>
+    </div>
+
+    <!-- Shopping Trends -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="h3 mb-3">
+                <span class="badge bg-success">Tendencias de Compras</span>
+            </h2>
+        </div>
+    </div>
+    <div class="row mb-5 justify-content-center">
+        {% for grafico in graficos %} {% if grafico.categoria == "Shopping" %}
+        <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-4">
+            <a href="{% url grafico.url %}" class="text-decoration-none">
+                <div
+                    class="card h-100 shadow-sm grafico-card border-{{ grafico.color }}"
+                >
+                    <div class="card-body text-center">
+                        <div class="grafico-icono mb-3">
+                            <span style="font-size: 3rem"
+                                >{{ grafico.icono }}</span
+                            >
+                        </div>
+                        <h5 class="card-title text-{{ grafico.color }}">
+                            {{ grafico.id }}. {{ grafico.titulo }}
+                        </h5>
+                        <p class="card-text text-muted small">
+                            {{ grafico.descripcion }}
+                        </p>
+                    </div>
+                    <div
+                        class="card-footer bg-{{ grafico.color }} bg-opacity-10 text-center"
+                    >
+                        <small class="text-{{ grafico.color }} fw-bold">
+                            Ver análisis →
+                        </small>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% endif %} {% endfor %}
+    </div>
+</div>
+
+<style>
+    .grafico-card {
+        transition: all 0.3s ease;
+        cursor: pointer;
+        border-width: 2px;
+    }
+
+    .grafico-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175) !important;
+    }
+
+    .grafico-icono {
+        transition: transform 0.3s ease;
+    }
+
+    .grafico-card:hover .grafico-icono {
+        transform: scale(1.2);
+    }
+
+    .card-footer {
+        border-top: 2px solid rgba(0, 0, 0, 0.05);
+    }
+
+    a {
+        color: inherit;
+    }
+
+    a:hover {
+        color: inherit;
+    }
+
+    .badge {
+        font-size: 1rem;
+        padding: 0.5rem 1rem;
+    }
+
+    .display-4 {
+        font-weight: 700;
+        color: #2c3e50;
+    }
+
+    .lead {
+        font-size: 1.1rem;
+    }
+</style>
+{% endblock %}

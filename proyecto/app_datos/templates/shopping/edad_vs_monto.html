@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="mb-4">Edad vs. Monto de Compra</h1>
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-body">
+                    <canvas id="edadVsMonto"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const ctx = document.getElementById('edadVsMonto').getContext('2d');
+
+    const ages = {{ ages|safe }};
+    const amounts = {{ amounts|safe }};
+
+    // Crear datos para scatter plot
+    const scatterData = ages.map((age, index) => ({
+        x: age,
+        y: amounts[index]
+    }));
+
+    const chart = new Chart(ctx, {
+        type: 'scatter',
+        data: {
+            datasets: [{
+                label: 'Promedio de Poder Adquisitivo por Edad',
+                data: scatterData,
+                backgroundColor: 'rgba(128, 0, 128, 0.6)',
+                borderColor: 'rgba(128, 0, 128, 1)',
+                borderWidth: 1,
+                pointRadius: 6,
+                pointHoverRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                },
+                title: {
+                    display: true,
+                    text: 'Relación entre Edad y Monto de Compra',
+                    font: {
+                        size: 16
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `Edad: ${context.parsed.x}, Promedio: $${context.parsed.y.toFixed(2)}`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Promedio de Poder Adquisitivo (USD)'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Edad'
+                    }
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

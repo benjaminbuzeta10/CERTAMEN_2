@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+    <h1>1. Total de Alumnos</h1>
+    <p>Cantidad total de alumnos del semestre</p>
+
+    <div style="width: 50%;">
+        <canvas id="myChart"></canvas>
+    </div>
+
+    {{ total_alumnos|json_script:"chart-data"}}
+
+    <script>
+
+        const data= JSON.parse(document.getElementById('chart-data').textContent);
+
+        const ctx = document.getElementById('myChart');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Total Alumnos'],
+                datasets: [{
+                    label: 'Cantidad',
+                    data: [data],
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)'
+                }]
+            },
+            options: {
+                scales: {
+                    y: {beginAtZero: true}
+                }
+            }
+        });
+    </script>
+{% endblock %}

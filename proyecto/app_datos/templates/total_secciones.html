@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+    <h1>2. Total de Alumnos por Sección</h1>
+    <p>Muestra cuántos alumnos pertenecen a cada sección (A, B, C, D, E, F, G)</p>
+
+    <div style="width: 80%;">
+        <canvas id="myChart"></canvas>
+    </div>
+
+    {{ labels|json_script:"chart-labels"  }}
+    {{ data|json_script:"chart-data"  }}
+
+    <script>
+
+        const labels = JSON.parse(document.getElementById('chart-labels').textContent);
+        const data = JSON.parse(document.getElementById('chart-data').textContent);
+
+        const ctx = document.getElementById('myChart');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'N° de Alumnos',
+                    data: data,
+                    backgroundColor: 'rgba(75, 192, 192, 0.6)'
+                }]
+            },
+            options: {
+                scales: {
+                    y: {beginAtZero: true}
+                }
+            }
+        });
+    </script>
+{% endblock %}
