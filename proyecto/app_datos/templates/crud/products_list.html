@@ -60,32 +60,32 @@
                 <div class="card-body p-0">
                     {% if products %}
                     <div class="table-responsive">
-                        <table class="table table-hover mb-0">
+                        <table class="table table-hover mb-0" id="products-table">
                             <thead class="table-light">
                                 <tr>
-                                    <th>ID</th>
-                                    <th>Nombre</th>
-                                    <th>Categoría</th>
-                                    <th>Talla</th>
-                                    <th>Color</th>
-                                    <th>Temporada</th>
+                                    <th><button class="sort-btn" data-column="id_product">ID</button></th>
+                                    <th><button class="sort-btn" data-column="name">Nombre</button></th>
+                                    <th><button class="sort-btn" data-column="category">Categoría</button></th>
+                                    <th><button class="sort-btn" data-column="size">Talla</button></th>
+                                    <th><button class="sort-btn" data-column="color">Color</button></th>
+                                    <th><button class="sort-btn" data-column="season">Temporada</button></th>
                                     <th class="text-end">Acciones</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody id="products-tbody">
                                 {% for product in products %}
                                 <tr>
-                                    <td><strong>#{{ product.id_product }}</strong></td>
-                                    <td>
+                                    <td data-value="{{ product.id_product }}"><strong>#{{ product.id_product }}</strong></td>
+                                    <td data-value="{{ product.name }}">
                                         <i class="bi bi-box text-muted"></i>
                                         <strong>{{ product.name }}</strong>
                                     </td>
-                                    <td>
+                                    <td data-value="{{ product.id_category.name }}">
                                         <span class="badge bg-primary">
                                             {{ product.id_category.name }}
                                         </span>
                                     </td>
-                                    <td>
+                                    <td data-value="{% if product.id_size %}{{ product.id_size.size_label }}{% else %}zzz{% endif %}">
                                         {% if product.id_size %}
                                         <span class="badge bg-info">
                                             {{ product.id_size.size_label }}
@@ -94,7 +94,7 @@
                                         <span class="text-muted">-</span>
                                         {% endif %}
                                     </td>
-                                    <td>
+                                    <td data-value="{% if product.id_color %}{{ product.id_color.name }}{% else %}zzz{% endif %}">
                                         {% if product.id_color %}
                                         <span class="badge bg-secondary">
                                             {{ product.id_color.name }}
@@ -103,7 +103,7 @@
                                         <span class="text-muted">-</span>
                                         {% endif %}
                                     </td>
-                                    <td>
+                                    <td data-value="{% if product.id_season %}{{ product.id_season.name }}{% else %}zzz{% endif %}">
                                         {% if product.id_season %}
                                         <span class="badge bg-warning text-dark">
                                             {{ product.id_season.name }}
@@ -165,21 +165,15 @@
                             <li class="page-item disabled">
                                 <span class="page-link">&laquo;</span>
                             </li>
-                            {% endif %}
-
-                            {% for num in products.paginator.page_range %}
-                                {% if products.number == num %}
-                                <li class="page-item active" aria-current="page">
-                                    <span class="page-link">{{ num }}</span>
-                                </li>
-                                {% elif num > products.number|add:'-3' and num < products.number|add:'3' %}
-                                <li class="page-item">
-                                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
-                                </li>
-                                {% endif %}
-                            {% endfor %}
-
-                            {% if products.has_next %}
+                            {% endif %} {% for num in products.paginator.page_range %} {% if products.number == num %}
+                            <li class="page-item active" aria-current="page">
+                                <span class="page-link">{{ num }}</span>
+                            </li>
+                            {% elif num > products.number|add:'-3' and num < products.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                            </li>
+                            {% endif %} {% endfor %} {% if products.has_next %}
                             <li class="page-item">
                                 <a class="page-link" href="?page={{ products.next_page_number }}" aria-label="Siguiente">
                                     <span aria-hidden="true">&raquo;</span>
@@ -210,4 +204,102 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<style>
+    /* Sortable table styles */
+    .sort-btn {
+        background: none;
+        border: none;
+        padding: 0;
+        font: inherit;
+        cursor: pointer;
+        color: inherit;
+        width: 100%;
+        text-align: left;
+        font-weight: bold;
+        position: relative;
+        padding-right: 20px;
+    }
+
+    .sort-btn:hover {
+        color: #198754;
+    }
+
+    .sort-btn::after {
+        content: "⇅";
+        position: absolute;
+        right: 5px;
+        opacity: 0.3;
+        font-size: 0.8em;
+    }
+
+    .sort-btn[data-dir="asc"]::after {
+        content: "▲";
+        opacity: 1;
+        color: #198754;
+    }
+
+    .sort-btn[data-dir="desc"]::after {
+        content: "▼";
+        opacity: 1;
+        color: #198754;
+    }
+</style>
+
+<script>
+    // Sortable table functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const sortButtons = document.querySelectorAll('.sort-btn');
+        const tbody = document.getElementById('products-tbody');
+
+        const resetButtons = (currentButton) => {
+            sortButtons.forEach(button => {
+                if (button !== currentButton) {
+                    button.removeAttribute('data-dir');
+                }
+            });
+        };
+
+        const sortTable = (column, direction) => {
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+
+            const sortedRows = rows.sort((a, b) => {
+                const columnIndex = Array.from(sortButtons).findIndex(btn => btn.dataset.column === column);
+                const aCellValue = a.querySelectorAll('td[data-value]')[columnIndex]?.dataset.value || '';
+                const bCellValue = b.querySelectorAll('td[data-value]')[columnIndex]?.dataset.value || '';
+
+                const aValue = isNaN(aCellValue) ? aCellValue.toLowerCase() : parseFloat(aCellValue);
+                const bValue = isNaN(bCellValue) ? bCellValue.toLowerCase() : parseFloat(bCellValue);
+
+                if (direction === 'asc') {
+                    return aValue > bValue ? 1 : aValue < bValue ? -1 : 0;
+                } else {
+                    return aValue < bValue ? 1 : aValue > bValue ? -1 : 0;
+                }
+            });
+
+            tbody.innerHTML = '';
+            sortedRows.forEach(row => tbody.appendChild(row));
+        };
+
+        sortButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                const column = e.target.dataset.column;
+                const currentDir = e.target.getAttribute('data-dir');
+
+                resetButtons(e.target);
+
+                if (currentDir === 'desc') {
+                    sortTable(column, 'asc');
+                    e.target.setAttribute('data-dir', 'asc');
+                } else {
+                    sortTable(column, 'desc');
+                    e.target.setAttribute('data-dir', 'desc');
+                }
+            });
+        });
+    });
+</script>
 {% endblock %}

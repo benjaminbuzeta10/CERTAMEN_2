@@ -60,26 +60,26 @@
                 <div class="card-body p-0">
                     {% if transactions %}
                     <div class="table-responsive">
-                        <table class="table table-hover mb-0">
+                        <table class="table table-hover mb-0" id="transactions-table">
                             <thead class="table-light">
                                 <tr>
-                                    <th>ID</th>
-                                    <th>Cliente</th>
-                                    <th>Producto</th>
-                                    <th>Monto</th>
-                                    <th>Fecha</th>
-                                    <th>Calificación</th>
-                                    <th>Método Pago</th>
-                                    <th>Envío</th>
-                                    <th>Descuento</th>
+                                    <th><button class="sort-btn" data-column="id_transaction">ID</button></th>
+                                    <th><button class="sort-btn" data-column="customer">Cliente</button></th>
+                                    <th><button class="sort-btn" data-column="product">Producto</button></th>
+                                    <th><button class="sort-btn" data-column="purchase_amount">Monto</button></th>
+                                    <th><button class="sort-btn" data-column="purchase_date">Fecha</button></th>
+                                    <th><button class="sort-btn" data-column="review_rate">Calificación</button></th>
+                                    <th><button class="sort-btn" data-column="payment">Método Pago</button></th>
+                                    <th><button class="sort-btn" data-column="shipping">Envío</button></th>
+                                    <th><button class="sort-btn" data-column="dsct_applied">Descuento</button></th>
                                     <th class="text-end">Acciones</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody id="transactions-tbody">
                                 {% for transaction in transactions %}
                                 <tr>
-                                    <td><strong>#{{ transaction.id_transaction }}</strong></td>
-                                    <td>
+                                    <td data-value="{{ transaction.id_transaction }}"><strong>#{{ transaction.id_transaction }}</strong></td>
+                                    <td data-value="{{ transaction.id_customer.id_customer }}">
                                         <i class="bi bi-person text-muted"></i>
                                         Cliente #{{ transaction.id_customer.id_customer }}
                                         <br>
@@ -88,16 +88,16 @@
                                             {{ transaction.id_customer.gender }}
                                         </small>
                                     </td>
-                                    <td>
+                                    <td data-value="{{ transaction.id_product.name }}">
                                         <i class="bi bi-box text-muted"></i>
                                         {{ transaction.id_product.name|truncatewords:3 }}
                                     </td>
-                                    <td>
+                                    <td data-value="{{ transaction.purchase_amount }}">
                                         <strong class="text-success">
                                             ${{ transaction.purchase_amount }}
                                         </strong>
                                     </td>
-                                    <td>
+                                    <td data-value="{% if transaction.purchase_date %}{{ transaction.purchase_date|date:'Y-m-d' }}{% else %}0{% endif %}">
                                         {% if transaction.purchase_date %}
                                         <i class="bi bi-calendar3"></i>
                                         {{ transaction.purchase_date|date:"d/m/Y" }}
@@ -105,7 +105,7 @@
                                         <span class="text-muted">-</span>
                                         {% endif %}
                                     </td>
-                                    <td>
+                                    <td data-value="{% if transaction.review_rate %}{{ transaction.review_rate }}{% else %}0{% endif %}">
                                         {% if transaction.review_rate %}
                                         <span class="badge bg-warning text-dark">
                                             <i class="bi bi-star-fill"></i>
@@ -115,19 +115,19 @@
                                         <span class="text-muted">-</span>
                                         {% endif %}
                                     </td>
-                                    <td>
+                                    <td data-value="{{ transaction.id_paymentmethod.name }}">
                                         <small class="text-muted">
                                             <i class="bi bi-credit-card"></i>
                                             {{ transaction.id_paymentmethod.name }}
                                         </small>
                                     </td>
-                                    <td>
+                                    <td data-value="{{ transaction.id_shipping.name }}">
                                         <small class="text-muted">
                                             <i class="bi bi-truck"></i>
                                             {{ transaction.id_shipping.name }}
                                         </small>
                                     </td>
-                                    <td>
+                                    <td data-value="{% if transaction.dsct_applied %}1{% else %}0{% endif %}">
                                         {% if transaction.dsct_applied %}
                                         <span class="badge bg-success">
                                             <i class="bi bi-check"></i> Sí
@@ -193,21 +193,15 @@
                             <li class="page-item disabled">
                                 <span class="page-link">&laquo;</span>
                             </li>
-                            {% endif %}
-
-                            {% for num in transactions.paginator.page_range %}
-                                {% if transactions.number == num %}
-                                <li class="page-item active" aria-current="page">
-                                    <span class="page-link">{{ num }}</span>
-                                </li>
-                                {% elif num > transactions.number|add:'-3' and num < transactions.number|add:'3' %}
-                                <li class="page-item">
-                                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
-                                </li>
-                                {% endif %}
-                            {% endfor %}
-
-                            {% if transactions.has_next %}
+                            {% endif %} {% for num in transactions.paginator.page_range %} {% if transactions.number == num %}
+                            <li class="page-item active" aria-current="page">
+                                <span class="page-link">{{ num }}</span>
+                            </li>
+                            {% elif num > transactions.number|add:'-3' and num < transactions.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                            </li>
+                            {% endif %} {% endfor %} {% if transactions.has_next %}
                             <li class="page-item">
                                 <a class="page-link" href="?page={{ transactions.next_page_number }}" aria-label="Siguiente">
                                     <span aria-hidden="true">&raquo;</span>
@@ -238,4 +232,102 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<style>
+    /* Sortable table styles */
+    .sort-btn {
+        background: none;
+        border: none;
+        padding: 0;
+        font: inherit;
+        cursor: pointer;
+        color: inherit;
+        width: 100%;
+        text-align: left;
+        font-weight: bold;
+        position: relative;
+        padding-right: 20px;
+    }
+
+    .sort-btn:hover {
+        color: #ffc107;
+    }
+
+    .sort-btn::after {
+        content: "⇅";
+        position: absolute;
+        right: 5px;
+        opacity: 0.3;
+        font-size: 0.8em;
+    }
+
+    .sort-btn[data-dir="asc"]::after {
+        content: "▲";
+        opacity: 1;
+        color: #ffc107;
+    }
+
+    .sort-btn[data-dir="desc"]::after {
+        content: "▼";
+        opacity: 1;
+        color: #ffc107;
+    }
+</style>
+
+<script>
+    // Sortable table functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const sortButtons = document.querySelectorAll('.sort-btn');
+        const tbody = document.getElementById('transactions-tbody');
+
+        const resetButtons = (currentButton) => {
+            sortButtons.forEach(button => {
+                if (button !== currentButton) {
+                    button.removeAttribute('data-dir');
+                }
+            });
+        };
+
+        const sortTable = (column, direction) => {
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+
+            const sortedRows = rows.sort((a, b) => {
+                const columnIndex = Array.from(sortButtons).findIndex(btn => btn.dataset.column === column);
+                const aCellValue = a.querySelectorAll('td[data-value]')[columnIndex]?.dataset.value || '';
+                const bCellValue = b.querySelectorAll('td[data-value]')[columnIndex]?.dataset.value || '';
+
+                const aValue = isNaN(aCellValue) ? aCellValue.toLowerCase() : parseFloat(aCellValue);
+                const bValue = isNaN(bCellValue) ? bCellValue.toLowerCase() : parseFloat(bCellValue);
+
+                if (direction === 'asc') {
+                    return aValue > bValue ? 1 : aValue < bValue ? -1 : 0;
+                } else {
+                    return aValue < bValue ? 1 : aValue > bValue ? -1 : 0;
+                }
+            });
+
+            tbody.innerHTML = '';
+            sortedRows.forEach(row => tbody.appendChild(row));
+        };
+
+        sortButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                const column = e.target.dataset.column;
+                const currentDir = e.target.getAttribute('data-dir');
+
+                resetButtons(e.target);
+
+                if (currentDir === 'desc') {
+                    sortTable(column, 'asc');
+                    e.target.setAttribute('data-dir', 'asc');
+                } else {
+                    sortTable(column, 'desc');
+                    e.target.setAttribute('data-dir', 'desc');
+                }
+            });
+        });
+    });
+</script>
 {% endblock %}
