@@ -6,6 +6,7 @@ import random
 import pandas as pd
 from django.conf import settings
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.models import Count
@@ -49,6 +50,7 @@ def load_shopping_data():
     return pd.read_csv(csv_path)
 
 
+@login_required
 def dashboard_home(request):
     # Obtener estadísticas de la base de datos
     total_customers = Customers.objects.count()
@@ -172,6 +174,7 @@ def menu(request):
 
 
 # 1. Histograma de Poder Adquisitivo (USD)
+@login_required
 def histograma_poder_adquisitivo(request):
     df = load_shopping_data()
 
@@ -189,6 +192,7 @@ def histograma_poder_adquisitivo(request):
 
 
 # 2. Histograma de Edad
+@login_required
 def histograma_edad(request):
     df = load_shopping_data()
 
@@ -206,6 +210,7 @@ def histograma_edad(request):
 
 
 # 3. Cantidad de clientes por Género
+@login_required
 def clientes_por_genero(request):
     df = load_shopping_data()
 
@@ -219,6 +224,7 @@ def clientes_por_genero(request):
 
 
 # 4. Preferencia de métodos de pago
+@login_required
 def metodos_pago(request):
     df = load_shopping_data()
 
@@ -232,6 +238,7 @@ def metodos_pago(request):
 
 
 # 5. Frecuencia de compras por cliente
+@login_required
 def frecuencia_compras(request):
     df = load_shopping_data()
 
@@ -245,6 +252,7 @@ def frecuencia_compras(request):
 
 
 # 6. Edad vs. Monto de Compra (scatter)
+@login_required
 def edad_vs_monto(request):
     df = load_shopping_data()
 
@@ -259,6 +267,7 @@ def edad_vs_monto(request):
 
 
 # 7. Poder Adquisitivo vs. Género (boxplot simulado con estadísticas)
+@login_required
 def poder_adquisitivo_genero(request):
     df = load_shopping_data()
 
@@ -280,6 +289,7 @@ def poder_adquisitivo_genero(request):
 
 
 # 8. Categoría Artículo vs. Monto de Compra
+@login_required
 def categoria_vs_monto(request):
     df = load_shopping_data()
 
@@ -301,6 +311,7 @@ def categoria_vs_monto(request):
 
 
 # 9. Método de Pago vs. Monto de Compra
+@login_required
 def metodo_pago_vs_monto(request):
     df = load_shopping_data()
 
@@ -319,6 +330,7 @@ def metodo_pago_vs_monto(request):
 
 
 # 10. Temporada vs. Cantidad Comprada (línea)
+@login_required
 def temporada_vs_cantidad(request):
     df = load_shopping_data()
 
@@ -332,6 +344,7 @@ def temporada_vs_cantidad(request):
 
 
 # 11. Ubicación vs. Cantidad Comprada
+@login_required
 def ubicacion_vs_cantidad(request):
     df = load_shopping_data()
 
@@ -350,6 +363,7 @@ def ubicacion_vs_cantidad(request):
 
 
 # 12. Cantidad comprada por Temporada y Método de Pago
+@login_required
 def temporada_metodo_pago(request):
     df = load_shopping_data()
 
@@ -382,6 +396,7 @@ def temporada_metodo_pago(request):
 
 
 # CUSTOMERS CRUD
+@login_required
 def customers_list(request):
     customers_list = Customers.objects.all().order_by("id_customer")
     paginator = Paginator(customers_list, 400)  # Show 400 customers per page
@@ -393,6 +408,7 @@ def customers_list(request):
     return render(request, "crud/customers_list.html", context)
 
 
+@login_required
 def customer_add(request):
     if request.method == "POST":
         form = CustomerForm(request.POST)
@@ -409,6 +425,7 @@ def customer_add(request):
     return render(request, "crud/customer_form.html", context)
 
 
+@login_required
 def customer_edit(request, pk):
     customer = get_object_or_404(Customers, id_customer=pk)
 
@@ -427,6 +444,7 @@ def customer_edit(request, pk):
     return render(request, "crud/customer_form.html", context)
 
 
+@login_required
 def customer_delete(request, pk):
     customer = get_object_or_404(Customers, id_customer=pk)
     customer.delete()
@@ -435,6 +453,7 @@ def customer_delete(request, pk):
 
 
 # TRANSACTIONS CRUD
+@login_required
 def transactions_list(request):
     transactions_list = (
         Transactions.objects.all()
@@ -450,6 +469,7 @@ def transactions_list(request):
     return render(request, "crud/transactions_list.html", context)
 
 
+@login_required
 def transaction_add(request):
     if request.method == "POST":
         form = TransactionForm(request.POST)
@@ -466,6 +486,7 @@ def transaction_add(request):
     return render(request, "crud/transaction_form.html", context)
 
 
+@login_required
 def transaction_edit(request, pk):
     transaction = get_object_or_404(Transactions, id_transaction=pk)
 
@@ -484,6 +505,7 @@ def transaction_edit(request, pk):
     return render(request, "crud/transaction_form.html", context)
 
 
+@login_required
 def transaction_delete(request, pk):
     transaction = get_object_or_404(Transactions, id_transaction=pk)
     transaction.delete()
@@ -492,6 +514,7 @@ def transaction_delete(request, pk):
 
 
 # PRODUCTS CRUD
+@login_required
 def products_list(request):
     products_list = (
         Products.objects.all()
@@ -507,6 +530,7 @@ def products_list(request):
     return render(request, "crud/products_list.html", context)
 
 
+@login_required
 def product_add(request):
     if request.method == "POST":
         form = ProductForm(request.POST)
@@ -523,6 +547,7 @@ def product_add(request):
     return render(request, "crud/product_form.html", context)
 
 
+@login_required
 def product_edit(request, pk):
     product = get_object_or_404(Products, id_product=pk)
 
@@ -541,6 +566,7 @@ def product_edit(request, pk):
     return render(request, "crud/product_form.html", context)
 
 
+@login_required
 def product_delete(request, pk):
     product = get_object_or_404(Products, id_product=pk)
     product.delete()
@@ -551,6 +577,7 @@ def product_delete(request, pk):
 # ==================== CSV UPLOAD ====================
 
 
+@login_required
 def csv_upload(request):
     if request.method == "POST":
         form = CSVUploadForm(request.POST, request.FILES)
@@ -713,6 +740,7 @@ def csv_upload(request):
 # ==================== DATA MANAGEMENT ====================
 
 
+@login_required
 def data_management(request):
     """Vista principal para gestión de datos"""
     stats = {

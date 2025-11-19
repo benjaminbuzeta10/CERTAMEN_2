@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Iniciar sesión{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-sm-10 col-md-8 col-lg-5">
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-4">
+                    <h1 class="h4 mb-4 text-center">Iniciar sesión</h1>
+
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger" role="alert">
+                        {{ form.non_field_errors|striptags }}
+                    </div>
+                    {% endif %}
+
+                    <form method="post" action="{% url 'login' %}" novalidate>
+                        {% csrf_token %}
+
+                        {% if next %}
+                        <input type="hidden" name="next" value="{{ next }}">
+                        {% elif request.GET.next %}
+                        <input type="hidden" name="next" value="{{ request.GET.next }}">
+                        {% endif %}
+
+                        <div class="mb-3">
+                            <label for="id_username" class="form-label">Usuario</label>
+                            <input
+                                type="text"
+                                name="username"
+                                id="id_username"
+                                class="form-control{% if form.username.errors %} is-invalid{% endif %}"
+                                autocomplete="username"
+                                autofocus
+                                required
+                                value="{{ form.username.value|default_if_none:'' }}"
+                            >
+                            {% if form.username.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.username.errors|striptags }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="id_password" class="form-label">Contraseña</label>
+                            <input
+                                type="password"
+                                name="password"
+                                id="id_password"
+                                class="form-control{% if form.password.errors %} is-invalid{% endif %}"
+                                autocomplete="current-password"
+                                required
+                            >
+                            {% if form.password.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.password.errors|striptags }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                Entrar
+                            </button>
+                        </div>
+                    </form>
+
+                    <p class="text-muted mt-4 mb-0 small text-center">
+                        Consejo: crea un usuario con "python manage.py createsuperuser" si aún no tienes credenciales.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% endblock %}

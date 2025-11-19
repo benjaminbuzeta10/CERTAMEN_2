@@ -144,6 +144,7 @@
                 </div>
             </div>
 
+            {% if user.is_authenticated %}
             <ul class="nav nav-pills flex-column px-2">
                 <li class="nav-item">
                     <a
@@ -294,6 +295,7 @@
                     </li>
                 </div>
             </ul>
+            {% endif %}
         </div>
 
         <main class="content">
