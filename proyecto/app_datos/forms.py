@@ -121,7 +121,7 @@ class SeasonForm(ModelForm):
 class CustomerForm(ModelForm):
     class Meta:
         model = Customers
-        fields = "__all__"
+        exclude = ["user"]
         widgets = {
             "age": NumberInput(
                 attrs={
@@ -153,7 +153,7 @@ class CustomerForm(ModelForm):
 class ProductForm(ModelForm):
     class Meta:
         model = Products
-        fields = "__all__"
+        exclude = ["user"]
         widgets = {
             "name": TextInput(
                 attrs={"class": "form-control", "placeholder": "Nombre del producto"}
@@ -173,7 +173,7 @@ class TransactionForm(ModelForm):
 
     class Meta:
         model = Transactions
-        fields = "__all__"
+        exclude = ["user"]
         widgets = {
             "id_customer": Select(attrs={"class": "form-control"}),
             "id_product": Select(attrs={"class": "form-control"}),

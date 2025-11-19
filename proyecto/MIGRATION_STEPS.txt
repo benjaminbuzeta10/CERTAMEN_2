@@ -1,0 +1,82 @@
+MIGRATION STEPS FOR MULTI-USER FEATURE
+=======================================
+
+STEP 1: Backup your database (optional but recommended)
+--------------------------------------------------------
+cp db.sqlite3 db.sqlite3.backup
+
+
+STEP 2: Choose your migration approach
+---------------------------------------
+
+OPTION A - Fresh Start (Recommended if you have test data)
+-----------------------------------------------------------
+1. Delete all existing data:
+   python manage.py shell
+   >>> from app_datos.models import Customers, Products, Transactions
+   >>> Transactions.objects.all().delete()
+   >>> Products.objects.all().delete()
+   >>> Customers.objects.all().delete()
+   >>> exit()
+
+2. Create and apply migrations:
+   python manage.py makemigrations
+   python manage.py migrate
+
+
+OPTION B - Keep Existing Data (Assign to default user)
+-------------------------------------------------------
+1. Make sure you have at least one user (superuser):
+   python manage.py createsuperuser
+   (Remember the user ID - usually 1 for the first user)
+
+2. Create migrations:
+   python manage.py makemigrations
+
+3. When prompted about the default for 'user':
+   - Select option 1 (provide a one-off default)
+   - Enter: 1  (or the ID of your superuser)
+
+4. Apply migrations:
+   python manage.py migrate
+
+
+STEP 3: Verify the migration worked
+------------------------------------
+python manage.py shell
+>>> from app_datos.models import Customers
+>>> print(Customers.objects.count())
+>>> exit()
+
+
+STEP 4: Test the multi-user functionality
+------------------------------------------
+1. Create a second test user:
+   python manage.py createsuperuser --username testuser
+
+2. Start the server:
+   python manage.py runserver
+
+3. Login as your first user and upload CSV data
+4. Logout and login as testuser - should see empty dashboard
+5. Upload different CSV as testuser - should see separate data
+
+
+TROUBLESHOOTING
+---------------
+
+Error: "null value in column 'user_id' violates not-null constraint"
+- You chose Option B but didn't provide a valid user ID
+- Solution: Restore backup and try again, or use Option A
+
+Error: "no such column: app_datos_customers.user_id"
+- Migrations weren't applied
+- Solution: Run 'python manage.py migrate'
+
+Error: "UNIQUE constraint failed"
+- Product names must now be unique per user, not globally
+- Solution: This is expected, the unique_together constraint is working
+
+To rollback migrations:
+- python manage.py migrate app_datos zero
+- Restore your backup: cp db.sqlite3.backup db.sqlite3
