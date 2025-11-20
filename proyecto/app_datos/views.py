@@ -6,6 +6,7 @@ import random
 import pandas as pd
 from django.conf import settings
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.models import Count
@@ -49,11 +50,12 @@ def load_shopping_data():
     return pd.read_csv(csv_path)
 
 
+@login_required
 def dashboard_home(request):
-    # Obtener estadísticas de la base de datos
-    total_customers = Customers.objects.count()
-    total_transactions = Transactions.objects.count()
-    total_products = Products.objects.count()
+    # Obtener estadísticas de la base de datos del usuario actual
+    total_customers = Customers.objects.filter(user=request.user).count()
+    total_transactions = Transactions.objects.filter(user=request.user).count()
+    total_products = Products.objects.filter(user=request.user).count()
 
     # Definir todos los gráficos con su información
     graficos = [
@@ -172,6 +174,7 @@ def menu(request):
 
 
 # 1. Histograma de Poder Adquisitivo (USD)
+@login_required
 def histograma_poder_adquisitivo(request):
     df = load_shopping_data()
 
@@ -189,6 +192,7 @@ def histograma_poder_adquisitivo(request):
 
 
 # 2. Histograma de Edad
+@login_required
 def histograma_edad(request):
     df = load_shopping_data()
 
@@ -206,6 +210,7 @@ def histograma_edad(request):
 
 
 # 3. Cantidad de clientes por Género
+@login_required
 def clientes_por_genero(request):
     df = load_shopping_data()
 
@@ -219,6 +224,7 @@ def clientes_por_genero(request):
 
 
 # 4. Preferencia de métodos de pago
+@login_required
 def metodos_pago(request):
     df = load_shopping_data()
 
@@ -232,6 +238,7 @@ def metodos_pago(request):
 
 
 # 5. Frecuencia de compras por cliente
+@login_required
 def frecuencia_compras(request):
     df = load_shopping_data()
 
@@ -245,6 +252,7 @@ def frecuencia_compras(request):
 
 
 # 6. Edad vs. Monto de Compra (scatter)
+@login_required
 def edad_vs_monto(request):
     df = load_shopping_data()
 
@@ -259,6 +267,7 @@ def edad_vs_monto(request):
 
 
 # 7. Poder Adquisitivo vs. Género (boxplot simulado con estadísticas)
+@login_required
 def poder_adquisitivo_genero(request):
     df = load_shopping_data()
 
@@ -280,6 +289,7 @@ def poder_adquisitivo_genero(request):
 
 
 # 8. Categoría Artículo vs. Monto de Compra
+@login_required
 def categoria_vs_monto(request):
     df = load_shopping_data()
 
@@ -301,6 +311,7 @@ def categoria_vs_monto(request):
 
 
 # 9. Método de Pago vs. Monto de Compra
+@login_required
 def metodo_pago_vs_monto(request):
     df = load_shopping_data()
 
@@ -319,6 +330,7 @@ def metodo_pago_vs_monto(request):
 
 
 # 10. Temporada vs. Cantidad Comprada (línea)
+@login_required
 def temporada_vs_cantidad(request):
     df = load_shopping_data()
 
@@ -332,6 +344,7 @@ def temporada_vs_cantidad(request):
 
 
 # 11. Ubicación vs. Cantidad Comprada
+@login_required
 def ubicacion_vs_cantidad(request):
     df = load_shopping_data()
 
@@ -350,6 +363,7 @@ def ubicacion_vs_cantidad(request):
 
 
 # 12. Cantidad comprada por Temporada y Método de Pago
+@login_required
 def temporada_metodo_pago(request):
     df = load_shopping_data()
 
@@ -382,8 +396,9 @@ def temporada_metodo_pago(request):
 
 
 # CUSTOMERS CRUD
+@login_required
 def customers_list(request):
-    customers_list = Customers.objects.all().order_by("id_customer")
+    customers_list = Customers.objects.filter(user=request.user).order_by("id_customer")
     paginator = Paginator(customers_list, 400)  # Show 400 customers per page
 
     page_number = request.GET.get("page")
@@ -393,11 +408,14 @@ def customers_list(request):
     return render(request, "crud/customers_list.html", context)
 
 
+@login_required
 def customer_add(request):
     if request.method == "POST":
         form = CustomerForm(request.POST)
         if form.is_valid():
-            form.save()
+            customer = form.save(commit=False)
+            customer.user = request.user
+            customer.save()
             messages.success(request, "Cliente agregado exitosamente!")
             return redirect("customers_list")
         else:
@@ -409,8 +427,9 @@ def customer_add(request):
     return render(request, "crud/customer_form.html", context)
 
 
+@login_required
 def customer_edit(request, pk):
-    customer = get_object_or_404(Customers, id_customer=pk)
+    customer = get_object_or_404(Customers, id_customer=pk, user=request.user)
 
     if request.method == "POST":
         form = CustomerForm(request.POST, instance=customer)
@@ -427,17 +446,19 @@ def customer_edit(request, pk):
     return render(request, "crud/customer_form.html", context)
 
 
+@login_required
 def customer_delete(request, pk):
-    customer = get_object_or_404(Customers, id_customer=pk)
+    customer = get_object_or_404(Customers, id_customer=pk, user=request.user)
     customer.delete()
     messages.success(request, "Cliente eliminado exitosamente!")
     return redirect("customers_list")
 
 
 # TRANSACTIONS CRUD
+@login_required
 def transactions_list(request):
     transactions_list = (
-        Transactions.objects.all()
+        Transactions.objects.filter(user=request.user)
         .select_related("id_customer", "id_product", "id_paymentmethod", "id_shipping")
         .order_by("-id_transaction")
     )
@@ -450,24 +471,33 @@ def transactions_list(request):
     return render(request, "crud/transactions_list.html", context)
 
 
+@login_required
 def transaction_add(request):
     if request.method == "POST":
         form = TransactionForm(request.POST)
         if form.is_valid():
-            form.save()
+            transaction = form.save(commit=False)
+            transaction.user = request.user
+            transaction.save()
             messages.success(request, "Transacción agregada exitosamente!")
             return redirect("transactions_list")
         else:
             messages.error(request, "Error al agregar la transacción.")
     else:
         form = TransactionForm()
+        # Filter querysets to only show current user's data
+        form.fields["id_customer"].queryset = Customers.objects.filter(
+            user=request.user
+        )
+        form.fields["id_product"].queryset = Products.objects.filter(user=request.user)
 
     context = {"form": form, "title": "Agregar Transacción"}
     return render(request, "crud/transaction_form.html", context)
 
 
+@login_required
 def transaction_edit(request, pk):
-    transaction = get_object_or_404(Transactions, id_transaction=pk)
+    transaction = get_object_or_404(Transactions, id_transaction=pk, user=request.user)
 
     if request.method == "POST":
         form = TransactionForm(request.POST, instance=transaction)
@@ -479,22 +509,29 @@ def transaction_edit(request, pk):
             messages.error(request, "Error al actualizar la transacción.")
     else:
         form = TransactionForm(instance=transaction)
+        # Filter querysets to only show current user's data
+        form.fields["id_customer"].queryset = Customers.objects.filter(
+            user=request.user
+        )
+        form.fields["id_product"].queryset = Products.objects.filter(user=request.user)
 
     context = {"form": form, "title": "Editar Transacción", "transaction": transaction}
     return render(request, "crud/transaction_form.html", context)
 
 
+@login_required
 def transaction_delete(request, pk):
-    transaction = get_object_or_404(Transactions, id_transaction=pk)
+    transaction = get_object_or_404(Transactions, id_transaction=pk, user=request.user)
     transaction.delete()
     messages.success(request, "Transacción eliminada exitosamente!")
     return redirect("transactions_list")
 
 
 # PRODUCTS CRUD
+@login_required
 def products_list(request):
     products_list = (
-        Products.objects.all()
+        Products.objects.filter(user=request.user)
         .select_related("id_category", "id_size", "id_color", "id_season")
         .order_by("id_product")
     )
@@ -507,11 +544,14 @@ def products_list(request):
     return render(request, "crud/products_list.html", context)
 
 
+@login_required
 def product_add(request):
     if request.method == "POST":
         form = ProductForm(request.POST)
         if form.is_valid():
-            form.save()
+            product = form.save(commit=False)
+            product.user = request.user
+            product.save()
             messages.success(request, "Producto agregado exitosamente!")
             return redirect("products_list")
         else:
@@ -523,8 +563,9 @@ def product_add(request):
     return render(request, "crud/product_form.html", context)
 
 
+@login_required
 def product_edit(request, pk):
-    product = get_object_or_404(Products, id_product=pk)
+    product = get_object_or_404(Products, id_product=pk, user=request.user)
 
     if request.method == "POST":
         form = ProductForm(request.POST, instance=product)
@@ -541,8 +582,9 @@ def product_edit(request, pk):
     return render(request, "crud/product_form.html", context)
 
 
+@login_required
 def product_delete(request, pk):
-    product = get_object_or_404(Products, id_product=pk)
+    product = get_object_or_404(Products, id_product=pk, user=request.user)
     product.delete()
     messages.success(request, "Producto eliminado exitosamente!")
     return redirect("products_list")
@@ -551,6 +593,7 @@ def product_delete(request, pk):
 # ==================== CSV UPLOAD ====================
 
 
+@login_required
 def csv_upload(request):
     if request.method == "POST":
         form = CSVUploadForm(request.POST, request.FILES)
@@ -595,6 +638,7 @@ def csv_upload(request):
                             # 4. Verificar si el cliente ya existe (por edad, género, ubicación)
                             # Para evitar duplicados exactos
                             customer, created = Customers.objects.get_or_create(
+                                user=request.user,
                                 age=int(row["Age"]),
                                 gender=row["Gender"],
                                 id_location=location,
@@ -628,6 +672,7 @@ def csv_upload(request):
 
                             # 9. Obtener o crear producto
                             product, _ = Products.objects.get_or_create(
+                                user=request.user,
                                 name=row["Item Purchased"],
                                 defaults={
                                     "id_category": category,
@@ -652,6 +697,7 @@ def csv_upload(request):
 
                             # 12. Crear transacción
                             Transactions.objects.create(
+                                user=request.user,
                                 id_customer=customer,
                                 id_product=product,
                                 purchase_amount=float(row["Purchase Amount (USD)"]),
@@ -697,11 +743,11 @@ def csv_upload(request):
     else:
         form = CSVUploadForm()
 
-    # Obtener estadísticas actuales
+    # Obtener estadísticas actuales del usuario
     stats = {
-        "customers": Customers.objects.count(),
-        "products": Products.objects.count(),
-        "transactions": Transactions.objects.count(),
+        "customers": Customers.objects.filter(user=request.user).count(),
+        "products": Products.objects.filter(user=request.user).count(),
+        "transactions": Transactions.objects.filter(user=request.user).count(),
         "categories": Categories.objects.count(),
         "locations": Locations.objects.count(),
     }
@@ -713,12 +759,13 @@ def csv_upload(request):
 # ==================== DATA MANAGEMENT ====================
 
 
+@login_required
 def data_management(request):
     """Vista principal para gestión de datos"""
     stats = {
-        "customers": Customers.objects.count(),
-        "products": Products.objects.count(),
-        "transactions": Transactions.objects.count(),
+        "customers": Customers.objects.filter(user=request.user).count(),
+        "products": Products.objects.filter(user=request.user).count(),
+        "transactions": Transactions.objects.filter(user=request.user).count(),
         "categories": Categories.objects.count(),
         "payment_methods": PaymentMethods.objects.count(),
         "locations": Locations.objects.count(),

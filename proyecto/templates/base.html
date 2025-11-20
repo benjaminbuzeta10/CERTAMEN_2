@@ -23,8 +23,6 @@
             .sidebar {
                 width: 280px;
                 flex-shrink: 0;
-                background: linear-gradient(180deg, #5a7aeb 0%, #4361ee 100%);
-                background: #348fb3;
                 background: linear-gradient(
                     180deg,
                     rgba(52, 143, 179, 1) 0%,
@@ -33,6 +31,13 @@
                 border-right: 1px solid rgba(0, 0, 0, 0.1);
                 min-height: 100vh;
                 box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            }
+            .card-hover {
+                transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            }
+            .card-hover:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
             }
             .content {
                 flex-grow: 1;
@@ -144,6 +149,7 @@
                 </div>
             </div>
 
+            {% if user.is_authenticated %}
             <ul class="nav nav-pills flex-column px-2">
                 <li class="nav-item">
                     <a
@@ -203,7 +209,7 @@
                     <div class="sidebar-section-title">Gráficos y Análisis</div>
                     <li class="nav-item">
                         <a
-                            class="nav-link"
+                            class="nav-link {% if request.resolver_match.url_name == 'histograma_poder_adquisitivo' %}active{% endif %}"
                             href="{% url 'histograma_poder_adquisitivo' %}"
                         >
                             <i class="bi bi-bar-chart"></i> Histograma Poder
@@ -211,26 +217,26 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'histograma_edad' %}">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'histograma_edad' %}active{% endif %}" href="{% url 'histograma_edad' %}">
                             <i class="bi bi-bar-chart-line"></i> Histograma Edad
                         </a>
                     </li>
                     <li class="nav-item">
                         <a
-                            class="nav-link"
+                            class="nav-link {% if request.resolver_match.url_name == 'clientes_por_genero' %}active{% endif %}"
                             href="{% url 'clientes_por_genero' %}"
                         >
                             <i class="bi bi-pie-chart"></i> Clientes por Género
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'metodos_pago' %}">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'metodos_pago' %}active{% endif %}" href="{% url 'metodos_pago' %}">
                             <i class="bi bi-credit-card"></i> Métodos de Pago
                         </a>
                     </li>
                     <li class="nav-item">
                         <a
-                            class="nav-link"
+                            class="nav-link {% if request.resolver_match.url_name == 'frecuencia_compras' %}active{% endif %}"
                             href="{% url 'frecuencia_compras' %}"
                         >
                             <i class="bi bi-arrow-repeat"></i> Frecuencia de
@@ -238,13 +244,13 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'edad_vs_monto' %}">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'edad_vs_monto' %}active{% endif %}" href="{% url 'edad_vs_monto' %}">
                             <i class="bi bi-graph-up"></i> Edad vs. Monto
                         </a>
                     </li>
                     <li class="nav-item">
                         <a
-                            class="nav-link"
+                            class="nav-link {% if request.resolver_match.url_name == 'poder_adquisitivo_genero' %}active{% endif %}"
                             href="{% url 'poder_adquisitivo_genero' %}"
                         >
                             <i class="bi bi-boxes"></i> Poder Adq. por Género
@@ -252,7 +258,7 @@
                     </li>
                     <li class="nav-item">
                         <a
-                            class="nav-link"
+                            class="nav-link {% if request.resolver_match.url_name == 'categoria_vs_monto' %}active{% endif %}"
                             href="{% url 'categoria_vs_monto' %}"
                         >
                             <i class="bi bi-tags"></i> Categoría vs. Monto
@@ -260,7 +266,7 @@
                     </li>
                     <li class="nav-item">
                         <a
-                            class="nav-link"
+                            class="nav-link {% if request.resolver_match.url_name == 'metodo_pago_vs_monto' %}active{% endif %}"
                             href="{% url 'metodo_pago_vs_monto' %}"
                         >
                             <i class="bi bi-wallet2"></i> Método Pago vs. Monto
@@ -268,7 +274,7 @@
                     </li>
                     <li class="nav-item">
                         <a
-                            class="nav-link"
+                            class="nav-link {% if request.resolver_match.url_name == 'temporada_vs_cantidad' %}active{% endif %}"
                             href="{% url 'temporada_vs_cantidad' %}"
                         >
                             <i class="bi bi-calendar3"></i> Temporada vs.
@@ -277,7 +283,7 @@
                     </li>
                     <li class="nav-item">
                         <a
-                            class="nav-link"
+                            class="nav-link {% if request.resolver_match.url_name == 'ubicacion_vs_cantidad' %}active{% endif %}"
                             href="{% url 'ubicacion_vs_cantidad' %}"
                         >
                             <i class="bi bi-geo-alt"></i> Ubicación vs. Cantidad
@@ -285,7 +291,7 @@
                     </li>
                     <li class="nav-item">
                         <a
-                            class="nav-link"
+                            class="nav-link {% if request.resolver_match.url_name == 'temporada_metodo_pago' %}active{% endif %}"
                             href="{% url 'temporada_metodo_pago' %}"
                         >
                             <i class="bi bi-diagram-3"></i> Temporada y Método
@@ -294,6 +300,7 @@
                     </li>
                 </div>
             </ul>
+            {% endif %}
         </div>
 
         <main class="content">

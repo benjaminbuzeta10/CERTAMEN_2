@@ -309,5 +309,53 @@
             });
         });
     });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const table = document.getElementById('customers-table');
+        const headers = table.querySelectorAll('.sort-btn');
+        const tbody = table.querySelector('tbody');
+
+        headers.forEach(button => {
+            button.addEventListener('click', () => {
+                const column = button.dataset.column;
+                const rows = Array.from(tbody.querySelectorAll('tr'));
+                const isAscending = button.classList.contains('asc');
+                
+                // Reset all buttons
+                headers.forEach(btn => {
+                    btn.classList.remove('asc', 'desc');
+                    // Remove arrow icons if you want to add them dynamically
+                });
+
+                // Sort rows
+                rows.sort((a, b) => {
+                    const aValue = a.querySelector(`td[data-value]`).parentElement.querySelector(`td:nth-child(${button.parentElement.cellIndex + 1})`).dataset.value;
+                    const bValue = b.querySelector(`td[data-value]`).parentElement.querySelector(`td:nth-child(${button.parentElement.cellIndex + 1})`).dataset.value;
+
+                    // Check if values are numbers
+                    const aNum = parseFloat(aValue);
+                    const bNum = parseFloat(bValue);
+
+                    if (!isNaN(aNum) && !isNaN(bNum)) {
+                        return isAscending ? bNum - aNum : aNum - bNum;
+                    }
+                    
+                    return isAscending ? bValue.localeCompare(aValue) : aValue.localeCompare(bValue);
+                });
+
+                // Toggle direction
+                if (isAscending) {
+                    button.classList.remove('asc');
+                    button.classList.add('desc');
+                } else {
+                    button.classList.remove('desc');
+                    button.classList.add('asc');
+                }
+
+                // Reorder rows
+                rows.forEach(row => tbody.appendChild(row));
+            });
+        });
+    });
 </script>
 {% endblock %}

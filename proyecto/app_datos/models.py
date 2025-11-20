@@ -1,3 +1,4 @@
+from django.contrib.auth.models import User
 from django.db import models
 
 # Create your models here.
@@ -74,6 +75,7 @@ class Seasons(models.Model):
 
 class Customers(models.Model):
     id_customer = models.AutoField(primary_key=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="customers")
     age = models.IntegerField()
     gender = models.CharField(max_length=16)
     id_location = models.ForeignKey(Locations, on_delete=models.CASCADE)
@@ -94,7 +96,8 @@ class Customers(models.Model):
 
 class Products(models.Model):
     id_product = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=128, unique=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="products")
+    name = models.CharField(max_length=128)
     id_category = models.ForeignKey(Categories, on_delete=models.CASCADE)
     id_size = models.ForeignKey(Sizes, on_delete=models.SET_NULL, null=True, blank=True)
     id_color = models.ForeignKey(
@@ -104,12 +107,18 @@ class Products(models.Model):
         Seasons, on_delete=models.SET_NULL, null=True, blank=True
     )
 
+    class Meta:
+        unique_together = ["user", "name"]
+
     def __str__(self):
         return f"{self.name} (id={self.id_product})"
 
 
 class Transactions(models.Model):
     id_transaction = models.AutoField(primary_key=True)
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="transactions"
+    )
     id_customer = models.ForeignKey(Customers, on_delete=models.CASCADE)
     id_product = models.ForeignKey(Products, on_delete=models.CASCADE)
     purchase_amount = models.DecimalField(max_digits=10, decimal_places=2)

@@ -2,7 +2,12 @@
 
 {% block content %}
 <div class="container-fluid">
-    <h1 class="mb-4">Preferencia de los Métodos de Pago</h1>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0">Preferencia de los Métodos de Pago</h1>
+        <a href="{% url 'dashboard_home' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Volver al Dashboard
+        </a>
+    </div>
     <div class="row">
         <div class="col-12">
             <div class="card shadow">
