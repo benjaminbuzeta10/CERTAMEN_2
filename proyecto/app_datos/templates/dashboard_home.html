@@ -162,8 +162,11 @@
         <div class="col-12 col-sm-6 col-md-4 col-lg-3">
             <a href="{% url grafico.url %}" class="text-decoration-none">
                 <div class="card h-100 shadow-sm grafico-card border-top border-{{ grafico.color }} border-3">
-                    <div class="card-body text-center">
-                        <div class="grafico-icono mb-3">
+                    <div class="card-body text-center d-flex flex-column justify-content-center">
+                        <div class="chart-preview-container mb-3" data-url="{{ grafico.url }}" style="height: 100px; width: 100%; display: none;">
+                            <canvas id="chart-{{ grafico.url }}"></canvas>
+                        </div>
+                        <div class="grafico-icono mb-3" id="icon-{{ grafico.url }}">
                             <div class="icon-circle bg-{{ grafico.color }} bg-opacity-10 mx-auto d-flex align-items-center justify-content-center" style="width: 70px; height: 70px; border-radius: 50%;">
                                 <i class="bi bi-graph-up fs-1 text-{{ grafico.color }}"></i>
                             </div>
@@ -274,4 +277,69 @@
         background: linear-gradient(135deg, var(--bs-primary) 0%, var(--bs-info) 100%);
     }
 </style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const previewData = {{ preview_data|safe }};
+        
+        // Iterate over all chart containers
+        document.querySelectorAll('.chart-preview-container').forEach(container => {
+            const url = container.dataset.url;
+            
+            if (previewData[url]) {
+                // Show chart container and hide icon
+                container.style.display = 'block';
+                document.getElementById(`icon-${url}`).style.display = 'none';
+                
+                const ctx = document.getElementById(`chart-${url}`).getContext('2d');
+                const chartInfo = previewData[url];
+                
+                // Determine color based on chart type/index or random
+                const colors = [
+                    'rgba(54, 162, 235, 0.6)',
+                    'rgba(255, 99, 132, 0.6)',
+                    'rgba(75, 192, 192, 0.6)',
+                    'rgba(255, 206, 86, 0.6)'
+                ];
+                const color = colors[Math.floor(Math.random() * colors.length)];
+
+                new Chart(ctx, {
+                    type: chartInfo.type,
+                    data: {
+                        labels: chartInfo.labels,
+                        datasets: [{
+                            data: chartInfo.data,
+                            backgroundColor: color,
+                            borderColor: color.replace('0.6', '1'),
+                            borderWidth: 1,
+                            pointRadius: 0,
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        indexAxis: chartInfo.indexAxis || 'x',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            title: { display: false },
+                            tooltip: { enabled: false }
+                        },
+                        scales: {
+                            x: { display: false },
+                            y: { display: false }
+                        },
+                        interaction: {
+                            mode: 'none'
+                        },
+                        animation: {
+                            duration: 0
+                        }
+                    }
+                });
+            }
+        });
+    });
+</script>
 {% endblock %}

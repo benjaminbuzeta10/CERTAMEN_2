@@ -1,5 +1,6 @@
 import csv
 import io
+import json
 import os
 import random
 
@@ -56,6 +57,145 @@ def dashboard_home(request):
     total_customers = Customers.objects.filter(user=request.user).count()
     total_transactions = Transactions.objects.filter(user=request.user).count()
     total_products = Products.objects.filter(user=request.user).count()
+
+    # Cargar datos para previews
+    df = load_shopping_data()
+    preview_data = {}
+
+    # 1. Histograma Poder Adquisitivo
+    try:
+        bins = pd.cut(df["Purchase Amount (USD)"], bins=10)
+        hist_data = bins.value_counts().sort_index()
+        preview_data["histograma_poder_adquisitivo"] = {
+            "labels": [f"{int(i.left)}-{int(i.right)}" for i in hist_data.index],
+            "data": hist_data.values.tolist(),
+            "type": "bar",
+        }
+    except Exception as e:
+        print(f"Error calculating histograma_poder_adquisitivo: {e}")
+
+    # 2. Frecuencia Compras
+    try:
+        freq_counts = df["Frequency of Purchases"].value_counts()
+        preview_data["frecuencia_compras"] = {
+            "labels": freq_counts.index.tolist(),
+            "data": freq_counts.values.tolist(),
+            "type": "bar",
+        }
+    except Exception as e:
+        print(f"Error calculating frecuencia_compras: {e}")
+
+    # 3. Edad vs Monto
+    try:
+        edad_monto = df.groupby("Age")["Purchase Amount (USD)"].mean().reset_index()
+        preview_data["edad_vs_monto"] = {
+            "labels": edad_monto["Age"].tolist(),
+            "data": edad_monto["Purchase Amount (USD)"].round(2).tolist(),
+            "type": "line",
+        }
+    except Exception as e:
+        print(f"Error calculating edad_vs_monto: {e}")
+
+    # 4. Temporada y Método de Pago (Simplified to Season totals for preview)
+    try:
+        season_sales = df.groupby("Season")["Purchase Amount (USD)"].sum()
+        preview_data["temporada_metodo_pago"] = {
+            "labels": season_sales.index.tolist(),
+            "data": season_sales.values.tolist(),
+            "type": "bar",
+        }
+    except Exception as e:
+        print(f"Error calculating temporada_metodo_pago: {e}")
+
+    # 5. Histograma Edad
+    try:
+        bins = pd.cut(df["Age"], bins=10)
+        hist_data = bins.value_counts().sort_index()
+        preview_data["histograma_edad"] = {
+            "labels": [f"{int(i.left)}-{int(i.right)}" for i in hist_data.index],
+            "data": hist_data.values.tolist(),
+            "type": "bar",
+        }
+    except Exception as e:
+        print(f"Error calculating histograma_edad: {e}")
+
+    # 6. Clientes por Género
+    try:
+        gender_counts = df["Gender"].value_counts()
+        preview_data["clientes_por_genero"] = {
+            "labels": gender_counts.index.tolist(),
+            "data": gender_counts.values.tolist(),
+            "type": "bar",
+        }
+    except Exception as e:
+        print(f"Error calculating clientes_por_genero: {e}")
+
+    # 7. Métodos de Pago
+    try:
+        payment_counts = df["Payment Method"].value_counts()
+        preview_data["metodos_pago"] = {
+            "labels": payment_counts.index.tolist(),
+            "data": payment_counts.values.tolist(),
+            "type": "bar",
+        }
+    except Exception as e:
+        print(f"Error calculating metodos_pago: {e}")
+
+    # 8. Poder Adquisitivo por Género (Mean for preview)
+    try:
+        gender_avg = df.groupby("Gender")["Purchase Amount (USD)"].mean()
+        preview_data["poder_adquisitivo_genero"] = {
+            "labels": gender_avg.index.tolist(),
+            "data": gender_avg.round(2).values.tolist(),
+            "type": "bar",
+        }
+    except Exception as e:
+        print(f"Error calculating poder_adquisitivo_genero: {e}")
+
+    # 9. Categoría vs Monto (Mean)
+    try:
+        cat_avg = df.groupby("Category")["Purchase Amount (USD)"].mean()
+        preview_data["categoria_vs_monto"] = {
+            "labels": cat_avg.index.tolist(),
+            "data": cat_avg.round(2).values.tolist(),
+            "type": "bar",
+        }
+    except Exception as e:
+        print(f"Error calculating categoria_vs_monto: {e}")
+
+    # 10. Método Pago vs Monto (Mean)
+    try:
+        pay_avg = df.groupby("Payment Method")["Purchase Amount (USD)"].mean()
+        preview_data["metodo_pago_vs_monto"] = {
+            "labels": pay_avg.index.tolist(),
+            "data": pay_avg.round(2).values.tolist(),
+            "type": "bar",
+        }
+    except Exception as e:
+        print(f"Error calculating metodo_pago_vs_monto: {e}")
+
+    # 11. Temporada vs Cantidad
+    try:
+        season_sales = df.groupby("Season")["Purchase Amount (USD)"].sum()
+        preview_data["temporada_vs_cantidad"] = {
+            "labels": season_sales.index.tolist(),
+            "data": season_sales.values.tolist(),
+            "type": "line",
+        }
+    except Exception as e:
+        print(f"Error calculating temporada_vs_cantidad: {e}")
+
+    # 12. Ubicación vs Cantidad (Top 5)
+    try:
+        loc_avg = df.groupby("Location")["Purchase Amount (USD)"].mean().sort_values(ascending=False).head(5)
+        preview_data["ubicacion_vs_cantidad"] = {
+            "labels": loc_avg.index.tolist(),
+            "data": loc_avg.round(2).values.tolist(),
+            "type": "bar",
+            "indexAxis": "y",
+        }
+    except Exception as e:
+        print(f"Error calculating ubicacion_vs_cantidad: {e}")
 
     # Definir todos los gráficos con su información
     graficos = [
@@ -162,6 +302,7 @@ def dashboard_home(request):
         "total_customers": total_customers,
         "total_transactions": total_transactions,
         "total_products": total_products,
+        "preview_data": json.dumps(preview_data),
     }
     return render(request, "dashboard_home.html", context)
 
